@@ -10,3 +10,5 @@ docker cp ${ContainerName}:/opt/open62541/pki/created/server_key.der .
 
 docker container rm $ContainerName
 
+docker build --tag open62541-run:${Version} -f Dockerfile.run ..
+
