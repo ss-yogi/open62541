@@ -10,7 +10,7 @@ RUN apk update \
 
 COPY ./docker/server_cert.der /usr/local/share/ca-certificates/server_cert.der
 COPY ./docker/server_key.der /usr/local/share/ca-certificates/server_key.der
-COPY ./docker/open62541-${version}.tar.gz /opt/open62541-${version}.tar.gz
+COPY ./docker/open62541-${version}-alpine.tar.gz /opt/open62541-${version}.tar.gz
 
 WORKDIR /opt
 RUN tar xzvf /opt/open62541-${version}.tar.gz -C /usr/local --strip 1 \
