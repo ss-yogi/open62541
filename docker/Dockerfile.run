@@ -1,0 +1,23 @@
+FROM alpine:3.10
+
+ARG version="1.1.1"
+
+RUN apk update \
+ && apk add --no-cache \
+    libc6-compat \
+    mbedtls \
+ && rm -rf /var/cache/apk/*
+
+COPY ./docker/server_cert.der /usr/local/share/ca-certificates/server_cert.der
+COPY ./docker/server_key.der /usr/local/share/ca-certificates/server_key.der
+COPY ./docker/open62541-${version}.tar.gz /opt/open62541-${version}.tar.gz
+
+WORKDIR /opt
+RUN tar xzvf /opt/open62541-${version}.tar.gz -C /usr/local --strip 1 \
+ && cp -RT /usr/local/lib64 /usr/local/lib \
+ && ldconfig /usr/local/lib \
+ && rm -rf /opt/open62541-${version}.tar.gz
+
+EXPOSE 4840
+CMD ["/usr/local/bin/ua_server_ctt.exe" , "/usr/local/share/ca-certificates/server_cert.der", "/usr/local/share/ca-certificates/server_key.der", "--enableUnencrypted", "--enableAnonymous"]
+

@@ -11,18 +11,27 @@ RUN git fetch -f --tags github-upstream
 RUN git submodule update --init --recursive || true
 
 WORKDIR /opt/open62541/build
-RUN cmake -DBUILD_SHARED_LIBS=ON \
-		-DCMAKE_BUILD_TYPE=Debug \
-		-DUA_BUILD_EXAMPLES=ON \
-		# Hardening needs to be disabled, otherwise the docker build takes too long and travis fails
-		-DUA_ENABLE_HARDENING=OFF \
-        -DUA_ENABLE_ENCRYPTION=ON \
-        -DUA_ENABLE_SUBSCRIPTIONS=ON \
-        -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON \
-		-DUA_NAMESPACE_ZERO=FULL \
-         /opt/open62541
-RUN make -j
-RUN make install
+RUN cmake \
+      -DBUILD_SHARED_LIBS=ON \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DUA_BUILD_EXAMPLES=ON \
+      -DUA_ENABLE_DISCOVERY=ON \
+      -DUA_ENABLE_DISCOVERY_MULTICAST=ON \
+      -DUA_ENABLE_ENCRYPTION=ON \
+      -DUA_ENABLE_ENCRYPTION_MBEDTLS=ON \
+      -DUA_ENABLE_HARDENING=OFF \
+      -DUA_ENABLE_HISTORIZING=ON \
+      -DUA_ENABLE_SUBSCRIPTIONS=ON \
+      -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON \
+      -DUA_NAMESPACE_ZERO=REDUCED \
+      /opt/open62541
+
+RUN make -j \
+ && make install \
+ && make package || true \
+ && cp open62541-*.tar.gz open62541.tar.gz
+#RUN make install
+
 WORKDIR /opt/open62541
 
 # Generate certificates
@@ -33,4 +42,4 @@ RUN python /opt/open62541/tools/certs/create_self-signed.py /opt/open62541/pki/c
 
 
 EXPOSE 4840
-CMD ["/opt/open62541/build/bin/examples/server_ctt" , "/opt/open62541/pki/created/server_cert.der", "/opt/open62541/pki/created/server_key.der", "--enableUnencrypted", "--enableAnonymous"]
+CMD ["/usr/local/bin/ua_server_ctt.exe" , "/opt/open62541/pki/created/server_cert.der", "/opt/open62541/pki/created/server_key.der", "--enableUnencrypted", "--enableAnonymous"]
